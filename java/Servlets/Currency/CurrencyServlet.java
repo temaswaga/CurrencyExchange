@@ -33,7 +33,7 @@ public class CurrencyServlet extends HttpServlet {
         try {
             CurrencyDTO currencyDTO = CurrencyService.getCurrencyByCode(pathInfo);
 
-                out.println(gson.toJson(currencyDTO));
+            out.println(gson.toJson(currencyDTO));
 
         } catch (SQLException e) {
             resp.setStatus(HttpServletResponse.SC_NOT_FOUND);

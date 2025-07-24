@@ -112,9 +112,10 @@ public class CurrenciesDAO {
     public static boolean isCurrencyExistsByCode(String currencysCode) throws SQLException {
         Connection connection = DriverManager.getConnection(jdbcURL2);
         Statement statement = connection.createStatement();
-        String currencySelect = "SELECT * FROM Currencies WHERE code = " + currencysCode ;
+        String currencySelect = "SELECT * FROM Currencies WHERE code = '" + currencysCode + "'";
 
         ResultSet rs = statement.executeQuery(currencySelect);
+
 
         connection.close();
         return rs.next();

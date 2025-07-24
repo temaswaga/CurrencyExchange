@@ -4,9 +4,6 @@ import DTO.ModelDTO.ExchangeRateDTO;
 import Messages.Message;
 import Service.ExchangeRateService;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSyntaxException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,6 +11,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.stream.Collectors;
 
@@ -59,7 +58,11 @@ public class ExchangeRateServlet extends HttpServlet {
         Gson gson = new Gson();
 
 
-        float rate = Float.parseFloat(req.getParameter("rate"));
+        String body = req.getReader().lines().collect(Collectors.joining());
+        String rateStr = body.split("rate=")[1].split("&")[0];
+        rateStr = URLDecoder.decode(rateStr, StandardCharsets.UTF_8);
+
+        float rate = Float.parseFloat(rateStr);
 
         try {
             ExchangeRateDTO patchedRate = ExchangeRateService.updateExchangeRate(pathInfo, rate);
@@ -86,7 +89,7 @@ public class ExchangeRateServlet extends HttpServlet {
 //        try {
 //            // Получаем сырое тело запроса
 //            String rawBody = req.getReader().lines().collect(Collectors.joining());
-//            System.out.println("Received raw body: " + rawBody); // Логирование для отладки
+//            System.out.println("Received raw body: " + rawBody);
 //
 //            // Пытаемся разобрать как JSON
 //            JsonElement jsonElement = gson.fromJson(rawBody, JsonElement.class);
