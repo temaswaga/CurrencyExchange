@@ -1,0 +1,21 @@
+GET http://localhost:8080/
+
+###
+
+GET http://localhost:8080/currencies
+
+###
+
+GET http://localhost:8080/currency/USD
+
+###
+
+GET http://localhost:8080/currency/amd
+
+###
+
+GET http://localhost:8080/exchangeRates
+
+###
+
+GET http://localhost:8080/exchangeRate/EURUSd

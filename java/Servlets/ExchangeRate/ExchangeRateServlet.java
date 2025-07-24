@@ -1,0 +1,128 @@
+package Servlets.ExchangeRate;
+
+import DTO.ModelDTO.ExchangeRateDTO;
+import Messages.Message;
+import Service.ExchangeRateService;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.sql.SQLException;
+import java.util.stream.Collectors;
+
+@WebServlet("/exchangeRate/*")
+public class ExchangeRateServlet extends HttpServlet {
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json");
+
+        PrintWriter out = resp.getWriter();
+
+        String pathInfo = req.getPathInfo();
+        Gson gson = new Gson();
+
+
+
+        try {
+            ExchangeRateDTO exchangeRateDTO = ExchangeRateService.getExchangeRateByCodes(pathInfo);
+            if (exchangeRateDTO == null) {
+
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                Message message = new Message("Missing echange rate");
+                out.println(gson.toJson(message));
+            } else {
+                String json = gson.toJson(exchangeRateDTO);
+                out.println(json);
+            }
+
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        resp.setCharacterEncoding("UTF-8");
+        resp.setContentType("application/json");
+        PrintWriter out = resp.getWriter();
+        String pathInfo = req.getPathInfo();
+        Gson gson = new Gson();
+
+
+        float rate = Float.parseFloat(req.getParameter("rate"));
+
+        try {
+            ExchangeRateDTO patchedRate = ExchangeRateService.updateExchangeRate(pathInfo, rate);
+
+            if (patchedRate == null) {
+                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+                Message message = new Message("message: rate is not exist");
+                out.println(gson.toJson(message));
+            } else out.println(gson.toJson(patchedRate));
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
+//    protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+//        resp.setCharacterEncoding("UTF-8");
+//        resp.setContentType("application/json");
+//        PrintWriter out = resp.getWriter();
+//        String pathInfo = req.getPathInfo();
+//        Gson gson = new Gson();
+//
+//        try {
+//            // Получаем сырое тело запроса
+//            String rawBody = req.getReader().lines().collect(Collectors.joining());
+//            System.out.println("Received raw body: " + rawBody); // Логирование для отладки
+//
+//            // Пытаемся разобрать как JSON
+//            JsonElement jsonElement = gson.fromJson(rawBody, JsonElement.class);
+//
+//            float rate;
+//            if (jsonElement.isJsonObject()) {
+//                // Вариант 1: {"rate": 0.83}
+//                JsonObject jsonObject = jsonElement.getAsJsonObject();
+//                rate = jsonObject.get("rate").getAsFloat();
+//            } else if (jsonElement.isJsonPrimitive()) {
+//                // Вариант 2: Просто число (0.83)
+//                rate = jsonElement.getAsFloat();
+//            } else {
+//                throw new JsonSyntaxException("Unsupported JSON format");
+//            }
+//
+//            // Обработка запроса
+//            ExchangeRateDTO patchedRate = ExchangeRateService.updateExchangeRate(pathInfo, rate);
+//
+//            if (patchedRate == null) {
+//                resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+//                out.println(gson.toJson(new Message("Exchange rate not found")));
+//            } else {
+//                out.println(gson.toJson(patchedRate));
+//            }
+//
+//        } catch (JsonSyntaxException e) {
+//            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+//            out.println(gson.toJson(new Message("Invalid data format. Send JSON: {\"rate\": number} or just number")));
+//        } catch (NumberFormatException e) {
+//            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+//            out.println(gson.toJson(new Message("Rate must be a number")));
+//        } catch (SQLException e) {
+//            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+//            out.println(gson.toJson(new Message("Database error: " + e.getMessage())));
+//        }
+//    }
+
+}
