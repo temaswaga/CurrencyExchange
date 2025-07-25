@@ -1,38 +1,37 @@
 package DAO;
 
+import ConnectionPool.HikariCPConfig;
 import Model.Currency;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
 
 public class CurrenciesDAO {
 
-    static String jdbcURL2 = "jdbc:sqlite:C:/Users/temas/OneDrive/Desktop/java/CurrencyExchangeV0.1/src/main/webapp/WEB-INF/identifier.sqlite";
-
-
     public static Currency postCurrency(Currency currency) throws SQLException {
 
-        Connection connection = DriverManager.getConnection(jdbcURL2);
-        Statement statement = connection.createStatement();
         String currencyInsert = "INSERT INTO Currencies (Code, FullName, Sign) " +
-                "SELECT '" + currency.getCode() + "', '" + currency.getFullName() + "', '" + currency.getSign() + "' ";
+                "SELECT '" + currency.getCode() + "', '" + currency.getFullName() + "', '" + currency.getSign() + "'; ";
 
-        statement.executeUpdate(currencyInsert);
-        currency.setId(getCurrencyId(currency));
 
-        connection.close();
-        return currency;
+        try (Connection connection = HikariCPConfig.getDataSource().getConnection();
+             PreparedStatement statement = connection.prepareStatement(currencyInsert);) {
+
+            statement.executeUpdate();
+            currency.setId(getCurrencyId(currency));
+
+            return currency;
+        }
     }
 
     public static ArrayList<Currency> getAllCurrencies() throws SQLException {
-            Connection connection = DriverManager.getConnection(jdbcURL2);
-            Statement statement = connection.createStatement();
 
-            String currencySelect = "SELECT * FROM currencies";
+        try (Connection connection = HikariCPConfig.getDataSource().getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT * FROM currencies");
+             ResultSet rs = statement.executeQuery()) {
 
             ArrayList<Currency> currencies = new ArrayList<>();
-            ResultSet rs = statement.executeQuery(currencySelect);
-
             while (rs.next()) {
                 Currency currency = new Currency(
                         rs.getInt("id"),
@@ -42,86 +41,89 @@ public class CurrenciesDAO {
                 );
                 currencies.add(currency);
             }
-            connection.close();
+
             return currencies;
+        }
     }
 
     public static Currency getCurrencyByCode(String code) throws SQLException {
-        Connection connection = DriverManager.getConnection(jdbcURL2);
-        Statement statement = connection.createStatement();
 
         String currencySelect = "SELECT * FROM currencies WHERE code = '" + code + "'";
-        ResultSet rs = statement.executeQuery(currencySelect);
 
-        rs.next();
-        Currency currency = new Currency(rs.getInt("ID"), rs.getString("Code"), rs.getString("FullName"), rs.getString("Sign"));;
-        connection.close();
-        return currency;
+        try (Connection connection = HikariCPConfig.getDataSource().getConnection();
+        PreparedStatement statement = connection.prepareStatement(currencySelect);
+        ResultSet rs = statement.executeQuery()) {
+
+            rs.next();
+            Currency currency = new Currency(rs.getInt("ID"), rs.getString("Code"), rs.getString("FullName"), rs.getString("Sign"));
+
+            return currency;
+        }
     }
 
     public static Currency getCurrencyById(int id) throws SQLException {
-        Connection connection = DriverManager.getConnection(jdbcURL2);
-        Statement statement = connection.createStatement();
+
         String currencySelect = "SELECT * FROM currencies WHERE id = '" + id + "'";
-        ResultSet rs = statement.executeQuery(currencySelect);
-        rs.next();
-        Currency currency = new Currency(rs.getInt("ID"), rs.getString("Code"), rs.getString("FullName"), rs.getString("Sign"));;
-        connection.close();
-        return currency;
+
+        try (Connection connection = HikariCPConfig.getDataSource().getConnection();
+        PreparedStatement statement = connection.prepareStatement(currencySelect);
+        ResultSet rs = statement.executeQuery()) {
+            rs.next();
+            Currency currency = new Currency(rs.getInt("ID"), rs.getString("Code"), rs.getString("FullName"), rs.getString("Sign"));;
+
+            return currency;
+        }
     }
 
     public static int getCurrencyIdByCode(String code) throws SQLException {
-        Connection connection = DriverManager.getConnection(jdbcURL2);
-        Statement statement = connection.createStatement();
 
         String currencySelect = "SELECT * FROM currencies WHERE code = '" + code + "'";
-        ResultSet rs = statement.executeQuery(currencySelect);
 
-        rs.next();
-        Currency currency = new Currency(rs.getInt("ID"), rs.getString("Code"), rs.getString("FullName"), rs.getString("Sign"));;
-        int currencyId = currency.getId();
+        try (Connection connection = HikariCPConfig.getDataSource().getConnection();
+        PreparedStatement statement = connection.prepareStatement(currencySelect);
+            ResultSet rs = statement.executeQuery();) {
 
-        connection.close();
-        return currencyId;
+            rs.next();
+            Currency currency = new Currency(rs.getInt("ID"), rs.getString("Code"), rs.getString("FullName"), rs.getString("Sign"));;
+            int currencyId = currency.getId();
+
+            return currencyId;
+        }
     }
 
     public static int getCurrencyId(Currency currency) throws SQLException {
-        Connection connection = DriverManager.getConnection(jdbcURL2);
-        Statement statement = connection.createStatement();
 
         String currencySelect = "SELECT * FROM currencies WHERE code = '" + currency.getCode() + "'";
-        ResultSet rs = statement.executeQuery(currencySelect);
 
-        rs.next();
-        int currencyId = rs.getInt("ID");
-        connection.close();
-        return currencyId;
+        try (Connection connection = HikariCPConfig.getDataSource().getConnection();
+        PreparedStatement statement = connection.prepareStatement(currencySelect);
+        ResultSet rs = statement.executeQuery()) {
+
+            rs.next();
+            int currencyId = rs.getInt("ID");
+
+            return currencyId;
+            }
     }
 
     public static boolean isCurrencyExists(Currency currency) throws SQLException {
-        Connection connection = DriverManager.getConnection(jdbcURL2);
-        Statement statement = connection.createStatement();
-        String currencySelect = "SELECT * FROM Currencies WHERE code = '" + currency.getCode() + "' OR fullName = '" + currency.getFullName() + "' OR sign = '" + currency.getSign() + "'";
 
-        ResultSet rs = statement.executeQuery(currencySelect);
+        String currencySelect = "SELECT * FROM Currencies WHERE code = '" + currency.getCode() + "' OR fullName = '" + currency.getFullName() + "'";
 
-        connection.close();
-        return rs.next();
+        try (Connection connection = HikariCPConfig.getDataSource().getConnection();
+        PreparedStatement statement = connection.prepareStatement(currencySelect);
+        ResultSet rs = statement.executeQuery()) {
+            return rs.next();
+        }
     }
 
     public static boolean isCurrencyExistsByCode(String currencysCode) throws SQLException {
-        Connection connection = DriverManager.getConnection(jdbcURL2);
-        Statement statement = connection.createStatement();
         String currencySelect = "SELECT * FROM Currencies WHERE code = '" + currencysCode + "'";
 
-        ResultSet rs = statement.executeQuery(currencySelect);
-
-
-        connection.close();
-        return rs.next();
+        try (Connection connection = HikariCPConfig.getDataSource().getConnection();
+        PreparedStatement statement = connection.prepareStatement(currencySelect);
+        ResultSet rs = statement.executeQuery()) {
+            return rs.next();
+        }
     }
-
-
-
-
 }

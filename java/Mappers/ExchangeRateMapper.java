@@ -21,7 +21,6 @@ public class ExchangeRateMapper {
     }
 
     public static ArrayList<ExchangeRateDTO> getAllExchangeRatesDTOs(ArrayList<ExchangeRate> exchangeRates) throws SQLException {
-
         ArrayList<ExchangeRateDTO> exchangeRateDTOs = new ArrayList<>();
 
         for (ExchangeRate exchangeRate : exchangeRates) {

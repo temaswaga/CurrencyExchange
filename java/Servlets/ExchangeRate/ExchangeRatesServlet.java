@@ -2,6 +2,7 @@ package Servlets.ExchangeRate;
 
 
 import DTO.ModelDTO.ExchangeRateDTO;
+import Messages.Message;
 import Model.ExchangeRate;
 import Service.ExchangeRateService;
 import com.google.gson.Gson;
@@ -21,9 +22,6 @@ public class ExchangeRatesServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
 
-        resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json");
-
         PrintWriter out = resp.getWriter();
         Gson gson = new Gson();
 
@@ -33,14 +31,19 @@ public class ExchangeRatesServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         PrintWriter out = resp.getWriter();
-        resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json; charset=UTF-8");
         Gson gson = new Gson();
 
         try {
             String baseCurrencyCode = req.getParameter("baseCurrencyCode");
             String targetCurrencyCode = req.getParameter("targetCurrencyCode");
             float rate = Float.parseFloat(req.getParameter("rate"));
+
+            if (baseCurrencyCode.length() != 3 || targetCurrencyCode.length() != 3) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                Message message = new Message("Cmon bro, gimme normal currencies codes");
+                out.println(gson.toJson(message));
+                return;
+            }
 
             int baseCurrencyId = DAO.CurrenciesDAO.getCurrencyIdByCode(baseCurrencyCode);
             int targetCurrencyId = DAO.CurrenciesDAO.getCurrencyIdByCode(targetCurrencyCode);

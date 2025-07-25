@@ -1,5 +1,6 @@
 package Servlets.Currency;
 
+import Messages.Message;
 import Model.Currency;
 import DTO.ModelDTO.CurrencyDTO;
 import Service.CurrencyService;
@@ -25,9 +26,6 @@ public class CurrenciesServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         PrintWriter out = resp.getWriter();
 
-        resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json; charset=UTF-8");
-
         try {
             Gson gson = new Gson();
             String jsonCurrencies = gson.toJson(getAllCurrencies());
@@ -41,30 +39,38 @@ public class CurrenciesServlet extends HttpServlet {
 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         PrintWriter out = resp.getWriter();
-        resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json; charset=UTF-8");
         Gson gson = new Gson();
 
+        String code = req.getParameter("code");
+        String name = req.getParameter("fullName");
+        String sign = req.getParameter("sign");
+
+        Currency postedCurrency = new Currency(code, name, sign);
+
+        if (code == null || name == null || sign == null || name.isEmpty() || sign.isEmpty() || code.isEmpty()) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            Message message = new Message("Missing required fields (code, fullName, sign)");
+            out.println(gson.toJson(message));
+            return;
+
+        } else if (code.length() != 3 ) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            Message message = new Message("Code supposed to be a 3-digit");
+            out.println(gson.toJson(message));
+            return;
+
+        } else if(code.equalsIgnoreCase("GAY") || code.equalsIgnoreCase("SEX")) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            Message message = new Message("Naaah homie, there is no place for GAYSEX in my app");
+            out.println(gson.toJson(message));
+            return;
+        }
+
         try {
-//            String code = req.getParameter("code");
-//            String name = req.getParameter("fullName");
-//            String sign = req.getParameter("sign");
-
-            String code = req.getParameter("code");
-            String name = req.getParameter("fullName");
-            String sign = req.getParameter("sign");
-
-            Currency postedCurrency = new Currency(code, name, sign);
-
-            if (code == null || name == null || sign == null) {
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.println("Missing required fields (code, fullName, sign)");
-                return;
-            }
-
             if (DAO.CurrenciesDAO.isCurrencyExists(postedCurrency)) {
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                out.println("Currency already exists");
+                resp.setStatus(HttpServletResponse.SC_CONFLICT);
+                Message message = new Message("Currency already exists");
+                out.println(gson.toJson(message));
                 return;
             }
 

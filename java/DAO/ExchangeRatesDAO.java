@@ -1,5 +1,6 @@
 package DAO;
 
+import ConnectionPool.HikariCPConfig;
 import Model.ExchangeRate;
 
 import java.sql.*;
@@ -10,100 +11,105 @@ public class ExchangeRatesDAO {
     static String jdbcURL2 = "jdbc:sqlite:C:/Users/temas/OneDrive/Desktop/java/CurrencyExchangeV0.1/src/main/webapp/WEB-INF/identifier.sqlite";
 
     public static ArrayList<ExchangeRate> getAllExchangeRates() throws SQLException {
-        Connection connection = DriverManager.getConnection(jdbcURL2);
-        Statement statement = connection.createStatement();
+        try (Connection connection = HikariCPConfig.getDataSource().getConnection();
+             PreparedStatement statement = connection.prepareStatement("SELECT * FROM ExchangeRates");
+             ResultSet rs = statement.executeQuery()) {
 
-        String exchangeRateSelect = "SELECT * FROM ExchangeRates";
+            ArrayList<ExchangeRate> exchangeRates = new ArrayList<>();
 
-        ArrayList<ExchangeRate> exchangeRates = new ArrayList<>();
-        ResultSet rs = statement.executeQuery(exchangeRateSelect);
+            while (rs.next()) {
+                ExchangeRate exchangeRate = new ExchangeRate(
+                        rs.getInt("ID"),
+                        rs.getInt("BaseCurrencyId"),
+                        rs.getInt("TargetCurrencyId"),
+                        rs.getFloat("Rate")
+                );
+                exchangeRates.add(exchangeRate);
+            }
 
-        while (rs.next()) {
-            ExchangeRate exchangeRate = new ExchangeRate(
-                    rs.getInt("ID"),
-                    rs.getInt("BaseCurrencyId"),
-                    rs.getInt("TargetCurrencyId"),
-                    rs.getFloat("Rate")
-            );
-            exchangeRates.add(exchangeRate);
+            return exchangeRates;
         }
-
-        connection.close();
-        return exchangeRates;
     }
 
     public static ExchangeRate getExchangeRateByIds(int baseCurrencyId, int targetCurrencyId) throws SQLException {
-        Connection connection = DriverManager.getConnection(jdbcURL2);
 
-        Statement statement = connection.createStatement();
         String exchangeRateSelect = "SELECT * FROM ExchangeRates WHERE BaseCurrencyId = " + baseCurrencyId + " AND TargetCurrencyId = " + targetCurrencyId;
 
-        ResultSet rs = statement.executeQuery(exchangeRateSelect);
-        rs.next();
-        ExchangeRate exchangeRate = new ExchangeRate(rs.getInt("ID"), rs.getInt("BaseCurrencyId"), rs.getInt("TargetCurrencyId"), rs.getFloat("Rate") );
+        try (Connection connection = HikariCPConfig.getDataSource().getConnection();
+        PreparedStatement statement = connection.prepareStatement(exchangeRateSelect);
+        ResultSet rs = statement.executeQuery()) {
 
-        connection.close();
-        return exchangeRate;
+            rs.next();
+            ExchangeRate exchangeRate = new ExchangeRate(rs.getInt("ID"), rs.getInt("BaseCurrencyId"), rs.getInt("TargetCurrencyId"), rs.getFloat("Rate"));
+
+            return exchangeRate;
+        }
     }
 
     public static boolean isExchangeRateExists(ExchangeRate exchangeRate) throws SQLException {
-        Connection connection = DriverManager.getConnection(jdbcURL2);
 
-        Statement statement = connection.createStatement();
         String rateSelect = "SELECT * FROM ExchangeRates WHERE BaseCurrencyId = '" + exchangeRate.getBaseCurrencieID() + "' AND TargetCurrencyId = " + exchangeRate.getTargetCurrencyID();
 
-        ResultSet rs = statement.executeQuery(rateSelect);
-
-        connection.close();
-        return rs.next();
+        try (Connection connection = HikariCPConfig.getDataSource().getConnection();
+        PreparedStatement statement = connection.prepareStatement(rateSelect);
+        ResultSet rs = statement.executeQuery()) {
+            return rs.next();
+        }
     }
 
     public static boolean isExchangeRateExistsByCurrencyCodes(String basicCurrencyCode, String targetCurrencyCode) throws SQLException {
-        Connection connection = DriverManager.getConnection(jdbcURL2);
 
-        Statement statement = connection.createStatement();
         String rateSelect = "SELECT * FROM ExchangeRates WHERE BaseCurrencyId = " + DAO.CurrenciesDAO.getCurrencyIdByCode(basicCurrencyCode) + " AND TargetCurrencyId = " + DAO.CurrenciesDAO.getCurrencyIdByCode(targetCurrencyCode);
 
-        ResultSet rs = statement.executeQuery(rateSelect);
-        connection.close();
-        return rs.next();
+        try (Connection connection = HikariCPConfig.getDataSource().getConnection();
+        PreparedStatement statement = connection.prepareStatement(rateSelect);
+        ResultSet rs = statement.executeQuery()) {
+            return rs.next();
+        }
     }
 
 
     public static ExchangeRate postExchangeRate(ExchangeRate exchangeRate) throws SQLException {
-        Connection connection = DriverManager.getConnection(jdbcURL2);
 
-        Statement statement = connection.createStatement();
         String currencyInsert = "INSERT INTO ExchangeRates (BaseCurrencyId, TargetCurrencyId, Rate) " +
-                                "SELECT '" + exchangeRate.getBaseCurrencieID() + "', '" + exchangeRate.getTargetCurrencyID() + "', '" + exchangeRate.getRate() + "' ";
+                "SELECT '" + exchangeRate.getBaseCurrencieID() + "', '" + exchangeRate.getTargetCurrencyID() + "', '" + exchangeRate.getRate() + "' ";
 
-        statement.executeUpdate(currencyInsert);
+        try (Connection connection = HikariCPConfig.getDataSource().getConnection();
+        PreparedStatement statement = connection.prepareStatement(currencyInsert);) {
 
-        exchangeRate.setExchangeRateId(getExchangeRateId(exchangeRate));
-
-        connection.close();
-        return exchangeRate;
+            statement.executeUpdate();
+            exchangeRate.setExchangeRateId(getExchangeRateId(exchangeRate));
+            return exchangeRate;
+        }
     }
 
     public static int getExchangeRateId(ExchangeRate exchangeRate) throws SQLException {
-        Connection connection = DriverManager.getConnection(jdbcURL2);
-
-        Statement statement = connection.createStatement();
 
         String exchangeRateSelect = "SELECT * FROM ExchangeRates WHERE BaseCurrencyId = '" + exchangeRate.getBaseCurrencieID() + "' AND TargetCurrencyId = " + exchangeRate.getTargetCurrencyID();
-        ResultSet rs = statement.executeQuery(exchangeRateSelect);
 
-        rs.next();
-        int exchangeRateId = rs.getInt("ID");
-        connection.close();
-        return exchangeRateId;
+       try (Connection connection = HikariCPConfig.getDataSource().getConnection();
+       PreparedStatement statement = connection.prepareStatement(exchangeRateSelect);
+       ResultSet rs = statement.executeQuery()) {
 
+           rs.next();
+           return rs.getInt("ID");
+       }
     }
 
 
     public static void patchExchangeRate(int baseCurrencyId, int targetCurrencyId, float rate) throws SQLException {
-        Connection connection = DriverManager.getConnection(jdbcURL2);
-        Statement statement = connection.createStatement();
+
+        String exchangeRatePatch = "UPDATE ExchangeRates " +
+                "SET Rate = " + rate + " " +
+                "WHERE BaseCurrencyId = '" + baseCurrencyId + "' " +
+                "AND TargetCurrencyId = '" + targetCurrencyId + "'";
+
+        try (Connection connection = HikariCPConfig.getDataSource().getConnection();
+        PreparedStatement statement = connection.prepareStatement(exchangeRatePatch);) {
+
+            statement.executeUpdate();
+
+        }
 
 //        String exchangeRatePatch = """
 //            UPDATE ExchangeRates er
@@ -111,28 +117,19 @@ public class ExchangeRatesDAO {
 //            WHERE er.BaseCurrencyCode = ?
 //            AND er.TargetCurrencyCode = ?""";
 
-        String exchangeRatePatch = "UPDATE ExchangeRates " +
-                "SET Rate = " + rate + " " +
-                "WHERE BaseCurrencyId = '" + baseCurrencyId + "' " +
-                "AND TargetCurrencyId = '" + targetCurrencyId + "'";
-
-        statement.executeUpdate(exchangeRatePatch);
-        connection.close();
     }
 
     public static float getRate(ExchangeRate exchangeRate) throws SQLException {
-        Connection connection = DriverManager.getConnection(jdbcURL2);
-        Statement statement = connection.createStatement();
 
         String rateSellect = "SELECT * FROM ExchangeRates WHERE BaseCurrencyId = '" + exchangeRate.getBaseCurrencieID() + "' AND TargetCurrencyId = " + exchangeRate.getTargetCurrencyID();
 
-        ResultSet rs = statement.executeQuery(rateSellect);
-        rs.next();
-        float rate = rs.getFloat("Rate");
-        connection.close();
+        try (Connection connection = HikariCPConfig.getDataSource().getConnection();
+        PreparedStatement statement = connection.prepareStatement(rateSellect);
+        ResultSet rs = statement.executeQuery()) {
 
-        return rate;
+            rs.next();
+            return rs.getFloat("Rate");
+        }
     }
-
 
 }

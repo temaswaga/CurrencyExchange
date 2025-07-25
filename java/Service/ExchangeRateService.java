@@ -34,10 +34,6 @@ public class ExchangeRateService {
     public static String[] connectedCurrencyCodesSplitter(String connectedCodes) {
         String upperCaseConnectedCurrenciesCode = connectedCodes.substring(1).toUpperCase();
 
-        if (upperCaseConnectedCurrenciesCode.length() != 6) {
-            throw new IllegalArgumentException("codes length must be 6");
-        }
-
         String baseCurrencyCode = upperCaseConnectedCurrenciesCode.substring(0, 3);
         String targetCurrencyCode = upperCaseConnectedCurrenciesCode.substring(3);
         return new String[]{baseCurrencyCode, targetCurrencyCode};

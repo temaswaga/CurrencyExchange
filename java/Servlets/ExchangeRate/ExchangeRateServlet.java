@@ -21,22 +21,23 @@ public class ExchangeRateServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json");
-
         PrintWriter out = resp.getWriter();
 
         String pathInfo = req.getPathInfo();
         Gson gson = new Gson();
 
-
+        if (pathInfo.length() != 7) {
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            Message message = new Message("Code's length should be 6");
+            out.println(gson.toJson(message));
+        }
 
         try {
             ExchangeRateDTO exchangeRateDTO = ExchangeRateService.getExchangeRateByCodes(pathInfo);
             if (exchangeRateDTO == null) {
 
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                Message message = new Message("Missing echange rate");
+                Message message = new Message("Exchange rate's not found");
                 out.println(gson.toJson(message));
             } else {
                 String json = gson.toJson(exchangeRateDTO);
@@ -51,8 +52,6 @@ public class ExchangeRateServlet extends HttpServlet {
 
     @Override
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        resp.setCharacterEncoding("UTF-8");
-        resp.setContentType("application/json");
         PrintWriter out = resp.getWriter();
         String pathInfo = req.getPathInfo();
         Gson gson = new Gson();
@@ -69,7 +68,7 @@ public class ExchangeRateServlet extends HttpServlet {
 
             if (patchedRate == null) {
                 resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-                Message message = new Message("message: rate is not exist");
+                Message message = new Message("Exchange rate's not found");
                 out.println(gson.toJson(message));
             } else out.println(gson.toJson(patchedRate));
 
@@ -87,11 +86,9 @@ public class ExchangeRateServlet extends HttpServlet {
 //        Gson gson = new Gson();
 //
 //        try {
-//            // Получаем сырое тело запроса
 //            String rawBody = req.getReader().lines().collect(Collectors.joining());
 //            System.out.println("Received raw body: " + rawBody);
 //
-//            // Пытаемся разобрать как JSON
 //            JsonElement jsonElement = gson.fromJson(rawBody, JsonElement.class);
 //
 //            float rate;
@@ -106,7 +103,6 @@ public class ExchangeRateServlet extends HttpServlet {
 //                throw new JsonSyntaxException("Unsupported JSON format");
 //            }
 //
-//            // Обработка запроса
 //            ExchangeRateDTO patchedRate = ExchangeRateService.updateExchangeRate(pathInfo, rate);
 //
 //            if (patchedRate == null) {
