@@ -20,9 +20,8 @@ public class JsonContentTypeFilter implements Filter {
         httpResponse.setCharacterEncoding("UTF-8");
 
         try {
-            chain.doFilter(request, response); // Пробрасываем запрос дальше
+            chain.doFilter(request, response);
         } catch (Exception e) {
-            // Обрабатываем исключение и возвращаем JSON-ошибку
             httpResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             httpResponse.getWriter().write("{\"error\": \"" + e.getMessage() + "\"}");
         }

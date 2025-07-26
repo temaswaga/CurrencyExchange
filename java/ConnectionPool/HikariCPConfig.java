@@ -4,7 +4,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 public class HikariCPConfig {
-    private static HikariDataSource dataSource;
+    private static final HikariDataSource dataSource;
 
     static {
         HikariConfig config = new HikariConfig();

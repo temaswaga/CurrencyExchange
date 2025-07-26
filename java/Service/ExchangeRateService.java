@@ -18,7 +18,7 @@ import static Mappers.ExchangeRateMapper.*;
 
 public class ExchangeRateService {
 
-    public static final int ID_OF_USD = 3;
+    public static final int ID_OF_USD = 1;
 
     public static ArrayList<ExchangeRateDTO> allExchangeRates;
 

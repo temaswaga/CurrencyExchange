@@ -64,7 +64,7 @@ public class ExchangeRatesServlet extends HttpServlet {
 
             ExchangeRateDTO responseExchangeRateDTO = ExchangeRateService.postExchangeRate(toDTO(postedExchangeRate));
 
-            out.println(gson.toJson(responseExchangeRateDTO));
+            out.print(gson.toJson(responseExchangeRateDTO));
 
         } catch (Exception e) {
             throw new RuntimeException(e);

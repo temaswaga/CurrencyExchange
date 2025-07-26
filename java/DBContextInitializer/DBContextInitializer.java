@@ -4,8 +4,9 @@ import jakarta.servlet.ServletContextEvent;
 import jakarta.servlet.ServletContextListener;
 import jakarta.servlet.annotation.WebListener;
 
-import javax.sql.DataSource;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @WebListener
 public class DBContextInitializer implements ServletContextListener {
@@ -23,6 +24,7 @@ public class DBContextInitializer implements ServletContextListener {
 
                 try (Connection connection = DriverManager.getConnection(jdbcURL2)) {
                     System.out.println("Connected to database");
+
                     Statement statement = connection.createStatement();
 
                     String sqlCurrenciesTableCreate = "CREATE TABLE IF NOT EXISTS Currencies (\n" +
@@ -31,7 +33,6 @@ public class DBContextInitializer implements ServletContextListener {
                             " FullName VARCHAR(50) NOT NULL,\n" +
                             " Sign VARCHAR(10) NOT NULL\n" +
                             ");;";
-                    statement.executeUpdate(sqlCurrenciesTableCreate);
 
                     String sqlExchangeRatesTableCreate = "CREATE TABLE IF NOT EXISTS ExchangeRates (\n" +
                         "ID INTEGER PRIMARY KEY AUTOINCREMENT, \n" +
@@ -45,36 +46,51 @@ public class DBContextInitializer implements ServletContextListener {
                         "CONSTRAINT CHK_DifferentCurrencies CHECK (BaseCurrencyId <> TargetCurrencyId)\n" +
                         ");;";
 
+                    statement.executeUpdate(sqlCurrenciesTableCreate);
                     statement.executeUpdate(sqlExchangeRatesTableCreate);
 
-                    String EuroInsert = "INSERT INTO Currencies (Code, FullName, Sign) " +
-                            "SELECT 'EUR', 'Euro', '€' " +
-                            "WHERE NOT EXISTS (SELECT 1 FROM Currencies WHERE Code = 'EUR');";
+                    String[] currencies = {
+                            "'USD', 'US Dollar', '$'",
+                            "'AMD', 'Armenian dram', '֏'",
+                            "'EUR', 'Euro', '€'",
+                            "'JPA', 'Japanese Yen', '¥'",
+                            "'AUD', 'Australian Dollar', 'A$'",
+                            "'RUB', 'Russian Ruble', '₽'"
+                    };
 
-                    String DramInsert = "INSERT INTO Currencies (Code, FullName, Sign) " +
-                            "SELECT 'AMD', 'Armenian dram', '֏' " +
-                            "WHERE NOT EXISTS (SELECT 1 FROM Currencies WHERE Code = 'AMD');";
+                    List<String> inserts = new ArrayList<>();
+                    for (String currency : currencies) {
+                        String[] parts = currency.split(", ");
+                        String code = parts[0].replace("'", "");
+                        String insert = "INSERT INTO Currencies (Code, FullName, Sign) " +
+                                "SELECT " + currency + " " +
+                                "WHERE NOT EXISTS (SELECT 1 FROM Currencies WHERE Code = '" + code + "');";
+                        inserts.add(insert);
+                    }
 
-                     String USDInsert = "INSERT INTO Currencies (Code, FullName, Sign) " +
-                            "SELECT 'USD', 'US dollar', '$' " +
-                            "WHERE NOT EXISTS (SELECT 1 FROM Currencies WHERE Code = 'USD');";
+                    statement.executeUpdate(inserts.get(0));
+                    statement.executeUpdate(inserts.get(1));
+                    statement.executeUpdate(inserts.get(2));
+                    statement.executeUpdate(inserts.get(3));
+                    statement.executeUpdate(inserts.get(4));
+                    statement.executeUpdate(inserts.get(5));
 
-                    statement.executeUpdate(EuroInsert);
-                    statement.executeUpdate(DramInsert);
-                    statement.executeUpdate(USDInsert);
+                    double[][] exchangeRates = {
+                            {3, 1, 0.9},
+                            {1, 2, 383.75},
+                            {1, 6, 90.50},
+                            {1, 4, 150.25},
+                    };
 
-                    String EURUSDExchangeRateInsert = "INSERT INTO ExchangeRates (BaseCurrencyId, TargetCurrencyId, Rate) " +
-                            "SELECT '1', '3', '0.9'" +
-                            "WHERE NOT EXISTS (SELECT 1 FROM ExchangeRates WHERE BaseCurrencyId = '1' and TargetCurrencyId = '3');";
-
-                    String USDAMDExchangeRateInsert = "INSERT INTO ExchangeRates (BaseCurrencyId, TargetCurrencyId, Rate) " +
-                            "SELECT '3', '2', '383.75'" +
-                            "WHERE NOT EXISTS (SELECT 1 FROM ExchangeRates WHERE BaseCurrencyId = '3' and TargetCurrencyId = '2');";
-
-                    statement.executeUpdate(EURUSDExchangeRateInsert);
-                    statement.executeUpdate(USDAMDExchangeRateInsert);
-
-                    statement.close();
+                    for (double[] rate : exchangeRates) {
+                        String sql = String.format(
+                                "INSERT INTO ExchangeRates (BaseCurrencyId, TargetCurrencyId, Rate) " +
+                                        "SELECT %f, %f, %.2f " +
+                                        "WHERE NOT EXISTS (SELECT 1 FROM ExchangeRates WHERE BaseCurrencyId = %f AND TargetCurrencyId = %f);",
+                                rate[0], rate[1], rate[2], rate[0], rate[1]
+                        );
+                        statement.executeUpdate(sql);
+                    }
 
                 } catch (SQLException e) {
                     throw new RuntimeException(e);
@@ -84,7 +100,6 @@ public class DBContextInitializer implements ServletContextListener {
                 throw new RuntimeException(e);
             }
         }
-
 
 
     }

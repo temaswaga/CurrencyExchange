@@ -5,7 +5,6 @@ import Model.Currency;
 
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.List;
 
 public class CurrenciesDAO {
 
@@ -13,7 +12,6 @@ public class CurrenciesDAO {
 
         String currencyInsert = "INSERT INTO Currencies (Code, FullName, Sign) " +
                 "SELECT '" + currency.getCode() + "', '" + currency.getFullName() + "', '" + currency.getSign() + "'; ";
-
 
         try (Connection connection = HikariCPConfig.getDataSource().getConnection();
              PreparedStatement statement = connection.prepareStatement(currencyInsert);) {

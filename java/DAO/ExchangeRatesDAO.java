@@ -96,7 +96,6 @@ public class ExchangeRatesDAO {
        }
     }
 
-
     public static void patchExchangeRate(int baseCurrencyId, int targetCurrencyId, float rate) throws SQLException {
 
         String exchangeRatePatch = "UPDATE ExchangeRates " +

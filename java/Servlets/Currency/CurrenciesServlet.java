@@ -50,7 +50,7 @@ public class CurrenciesServlet extends HttpServlet {
         if (code == null || name == null || sign == null || name.isEmpty() || sign.isEmpty() || code.isEmpty()) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             Message message = new Message("Missing required fields (code, fullName, sign)");
-            out.println(gson.toJson(message));
+            out.print(gson.toJson(message));
             return;
 
         } else if (code.length() != 3 ) {
@@ -59,7 +59,7 @@ public class CurrenciesServlet extends HttpServlet {
             out.println(gson.toJson(message));
             return;
 
-        } else if(code.equalsIgnoreCase("GAY") || code.equalsIgnoreCase("SEX")) {
+        } else if (code.equalsIgnoreCase("GAY") || code.equalsIgnoreCase("SEX")) {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             Message message = new Message("Naaah homie, there is no place for GAYSEX in my app");
             out.println(gson.toJson(message));
@@ -76,7 +76,7 @@ public class CurrenciesServlet extends HttpServlet {
 
             CurrencyDTO responseCurrencyDTO = CurrencyService.postCurrency(toDTO(postedCurrency));
 
-            out.println(gson.toJson(toEntity(responseCurrencyDTO)));
+            out.print(gson.toJson(toEntity(responseCurrencyDTO)));
 
     } catch (Exception e) {
             throw new RuntimeException(e);
