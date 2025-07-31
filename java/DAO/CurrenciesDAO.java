@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 public class CurrenciesDAO {
 
-    public static Currency postCurrency(Currency currency) throws SQLException {
+    public static Currency postCurrency(Currency currency) throws SQLException  {
 
         String currencyInsert = "INSERT INTO Currencies (Code, FullName, Sign) " +
                 "SELECT '" + currency.getCode() + "', '" + currency.getFullName() + "', '" + currency.getSign() + "'; ";
